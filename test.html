@@ -1,0 +1,9 @@
+<script type="text/javascript" src="assets/js/jquery-latest.min.js"></script>
+<div>
+	
+</div>
+<script type="text/javascript">
+	$.post("http://racingjapan.com/api_get_stewards_reports.php", {access_token:"testToken_cgWX2018NOV22019JAN", date:"2013-01-26"}, function (data){
+		$("div").html(data);
+	})
+</script>
