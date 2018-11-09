@@ -5,10 +5,21 @@ if( isset($_POST['action'])) $_action = $_POST['action'];
 require_once __DIR__ . "/userManager.php";
 
 switch ($_action) {
+	case 'verifyToken':
+		$_token = "";
+		if( isset($_POST['token'])) $_token = $_POST['token'];
+		if( $_token != ""){
+			$userInfo = getUserInfoFromCode($_token);
+			if( $userInfo != false){
+				echo $userInfo->eMail;
+			}
+		}
+		break;
 	case 'renew':
 		$_email = "";
 		if( isset($_POST['email'])) $_email = $_POST['email'];
-		echo reNewToken($_email);
+		$ret = reNewToken($_email);
+		if( $ret != false) echo json_encode($ret);
 		break;
 	case 'update':
 		$_email = "";
@@ -48,7 +59,6 @@ switch ($_action) {
 		if( isset($_POST['email'])) $_email = $_POST['email'];
 		unlink(__DIR__ . "/logs/users/" . $_email);
 		break;
-	
 	case 'create':
 		$_firstName = "";
 		if( isset($_POST['firstName'])) $_firstName = $_POST['firstName'];

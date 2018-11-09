@@ -20,7 +20,12 @@
 		var curRow = $(_this).parent().parent().parent();
 		var email = curRow.find(".eMail").html();
 		$.post("JRA/api_accountManager.php", {action:"renew", email: email}, function(data){
-			curRow.find(".token").html(data);
+			if( data){
+				var retVal = JSON.parse(data);
+				curRow.find(".token").html(retVal.token);
+				curRow.find(".refreshedDate").html(retVal.refreshedDate);
+			}
+			// document.location.reload();
 		});
 	}
 	function btnShowClicked(_this){

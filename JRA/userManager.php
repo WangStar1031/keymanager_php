@@ -7,10 +7,14 @@
 		if( file_exists($fName)){
 			$userInfo = json_decode(file_get_contents($fName));
 			$userInfo->token = $_token;
+			$userInfo->refreshedDate = date("Y-m-d");
 			file_put_contents($fName, json_encode($userInfo));
-			return $_token;
+			$retVal = new \stdClass;
+			$retVal->token = $_token;
+			$retVal->refreshedDate = $userInfo->refreshedDate;
+			return $retVal;
 		}
-		return "";
+		return false;
 	}
 	function changeExpDate($_email, $_expDate){
 		$dir = __DIR__ . "/logs/users/";
@@ -84,6 +88,17 @@
 		$user->refreshedDate = date("Y-m-d");
 		$user->billingHistory = [];
 		file_put_contents(__DIR__ . "/logs/users/" . $_eMail, json_encode($user));
+		$msg = "<!DOCTYPE html><html lang='en'><body><h1>Hello, <span style='font-weight:bolder;'> $_firstName! </span></h1><br><br> Thank you for joining our Token management system. <br> Your code is as follow. <br><br>$user->token</body></html>";
+		$headers = "From: support@hpbots.com" . "\r\n";
+		$headers .= "MIME-Version: 1.0\r\n";
+		$headers .= "Content-Type: text/html; charset=ISO-8859-1\r\n";
+		ini_set("SMTP","ssl://smtp-mail.outlook.com");
+		ini_set("smtp_port","587");
+		if( mail($_eMail, "Welcome to Token management system.", $msg, $headers)){
+			echo "OK Sent.";
+		} else{
+			echo "Not Send.";
+		}
 		return true;
 	}
 	function getAllUsers(){
