@@ -164,8 +164,8 @@
 			$arrTokens = $userInfo->arrTokens;
 			foreach ($arrTokens as $value) {
 				if( $value->product_name == $_productName){
-					$value->isLoged = ")";
-					file_put_contents($fName, $userInfo);
+					$value->isLoged = "0";
+					file_put_contents($fName, json_encode($userInfo));
 					return;
 				}
 			}
@@ -182,7 +182,7 @@
 					if( strtotime($value->expDate) < strtotime(date("Y-m-d")))return;
 					if( $value->isLoged == "0"){
 						$value->isLoged = "1";
-						file_put_contents($fName, $userInfo);
+						file_put_contents($fName, json_encode($userInfo));
 						echo "1";
 						return;
 					}
