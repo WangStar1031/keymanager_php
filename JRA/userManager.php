@@ -175,10 +175,10 @@
 		$fName = __DIR__ . "/logs/users/" . $_email;
 		if( file_exists($fName)){
 			$userInfo = json_decode(file_get_contents($fName));
-			$arrToken = $userInfo->arrTokens;
+			$arrTokens = $userInfo->arrTokens;
 			foreach ($arrTokens as $value) {
 				if( $value->product_name == $_productName){
-					if( $value->token != $_token) return;
+					if( strcasecmp($value->token, $_token)) return;
 					if( strtotime($value->expDate) < strtotime(date("Y-m-d")))return;
 					if( $value->isLoged == "0"){
 						$value->isLoged = "1";
