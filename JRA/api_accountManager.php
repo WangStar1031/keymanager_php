@@ -5,6 +5,31 @@ if( isset($_POST['action'])) $_action = $_POST['action'];
 require_once __DIR__ . "/userManager.php";
 
 switch ($_action) {
+	case 'login':
+		$_token = "";
+		if( isset($_POST['token'])) $_token = $_POST['token'];
+		$_productName = "";
+		if( isset($_POST['productName'])) $_productName = $_POST['productName'];
+		$_email = "";
+		if( isset($_POST['eMail'])) $_email = $_POST['eMail'];
+		if( $_token != ""){
+			canLogin($_email, $_productName, $_token);
+		}
+		break;
+	case 'logout':
+		$_productName = "";
+		if( isset($_POST['productName'])) $_productName = $_POST['productName'];
+		$_email = "";
+		if( isset($_POST['eMail'])) $_email = $_POST['eMail'];
+		Logout($_email, $_productName);
+		break;
+	case 'canUseProduct':
+		$_productName = "";
+		if( isset($_POST['productName'])) $_productName = $_POST['productName'];
+		$_email = "";
+		if( isset($_POST['eMail'])) $_email = $_POST['eMail'];
+		canUseProduct( $_email, $_productName);
+		break;
 	case 'verifyToken':
 		$_token = "";
 		if( isset($_POST['token'])) $_token = $_POST['token'];

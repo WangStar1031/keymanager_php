@@ -74,9 +74,9 @@
 
 	function registerUser($_firstName, $_lastName, $_eMail, $_password){
 		$fName = __DIR__ . "/logs/users/" . $_eMail;
-		if( file_exists($fName)){
-			return "Already exist.";
-		}
+		// if( file_exists($fName)){
+		// 	return "Already exist.";
+		// }
 		$user = new \stdClass;
 		$user->firstName = $_firstName;
 		$user->lastName = $_lastName;
@@ -84,21 +84,22 @@
 		$user->userPass = $_password;
 		$user->token = makeEncryptKey($_eMail);
 		$user->startedDate = date("Y-m-d");
-		$user->expDate = date("Y-m-d");
+		$user->expDate = date('Y-m-d', strtotime(date("Y-m-d") . " + 6 month"));
 		$user->refreshedDate = date("Y-m-d");
 		$user->billingHistory = [];
 		file_put_contents(__DIR__ . "/logs/users/" . $_eMail, json_encode($user));
-		$msg = "<!DOCTYPE html><html lang='en'><body><h1>Hello, <span style='font-weight:bolder;'> $_firstName! </span></h1><br><br> Thank you for joining our Token management system. <br> Your code is as follow. <br><br>$user->token</body></html>";
-		$headers = "From: support@hpbots.com" . "\r\n";
-		$headers .= "MIME-Version: 1.0\r\n";
-		$headers .= "Content-Type: text/html; charset=ISO-8859-1\r\n";
-		ini_set("SMTP","ssl://smtp-mail.outlook.com");
-		ini_set("smtp_port","587");
-		if( mail($_eMail, "Welcome to Token management system.", $msg, $headers)){
-			echo "OK Sent.";
-		} else{
-			echo "Not Send.";
-		}
+		return $user->token;
+		// $msg = "<!DOCTYPE html><html lang='en'><body><h1>Hello, <span style='font-weight:bolder;'> $_firstName! </span></h1><br><br> Thank you for joining our Token management system. <br> Your code is as follow. <br><br>$user->token</body></html>";
+		// $headers = "From: support@hpbots.com" . "\r\n";
+		// $headers .= "MIME-Version: 1.0\r\n";
+		// $headers .= "Content-Type: text/html; charset=ISO-8859-1\r\n";
+		// ini_set("SMTP","ssl://smtp-mail.outlook.com");
+		// ini_set("smtp_port","587");
+		// if( mail($_eMail, "Welcome to Token management system.", $msg, $headers)){
+		// 	echo "OK Sent.";
+		// } else{
+		// 	echo "Not Send.";
+		// }
 		return true;
 	}
 	function getAllUsers(){
@@ -141,6 +142,53 @@
 		$dir = __DIR__ . "/logs/users/";
 		$fName = $dir . $_userInfo->eMail;
 		file_put_contents($fName, json_encode($_userInfo));
+	}
+	function canUseProduct( $_email, $_productName){
+		$fName = __DIR__ . "/logs/users/" . $_email;
+		if( file_exists($fName)){
+			$userInfo = json_decode(file_get_contents($fName));
+			$arrTokens = $userInfo->arrTokens;
+			foreach ($arrTokens as $value) {
+				if( $value->product_name == $_productName){
+					if( strtotime($value->expDate) < strtotime(date("Y-m-d")))return;
+					echo "YES";
+					return;
+				}
+			}
+		}
+	}
+	function Logout($_email, $_productName){
+		$fName = __DIR__ . "/logs/users/" . $_email;
+		if( file_exists($fName)){
+			$userInfo = json_decode(file_get_contents($fName));
+			$arrTokens = $userInfo->arrTokens;
+			foreach ($arrTokens as $value) {
+				if( $value->product_name == $_productName){
+					$value->isLoged = ")";
+					file_put_contents($fName, $userInfo);
+					return;
+				}
+			}
+		}
+	}
+	function canLogin($_email, $_productName, $_token){
+		$fName = __DIR__ . "/logs/users/" . $_email;
+		if( file_exists($fName)){
+			$userInfo = json_decode(file_get_contents($fName));
+			$arrToken = $userInfo->arrTokens;
+			foreach ($arrTokens as $value) {
+				if( $value->product_name == $_productName){
+					if( $value->token != $_token) return;
+					if( strtotime($value->expDate) < strtotime(date("Y-m-d")))return;
+					if( $value->isLoged == "0"){
+						$value->isLoged = "1";
+						file_put_contents($fName, $userInfo);
+						echo "1";
+						return;
+					}
+				}
+			}
+		}
 	}
 	function getUserInfoFromCode($_token){
 		$dir = __DIR__ . "/logs/users/";

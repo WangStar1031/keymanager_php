@@ -35,51 +35,44 @@ require_once __DIR__ . "/JRA/makeKey.php";
 	<div style="float: right;">
 		<a href="admin_logout.php">Logout</a>
 	</div>
-	<h2>Joined Users<span class="btn btn-danger" style="margin-left: 20%; font-size: 15px; cursor: pointer;" data-toggle="modal" data-target="#authModal">Change Authentication</span><span class="btn btn-danger" style="margin-left: 20px; font-size: 15px; cursor: pointer;" data-toggle="modal" data-target="#paymentModal">Edit Payment</span></h2>
+	<h2>Joined Users<span class="btn btn-danger" style="margin-left: 20%; font-size: 15px; cursor: pointer;" data-toggle="modal" data-target="#authModal">Change Authentication</span><!-- <span class="btn btn-danger" style="margin-left: 20px; font-size: 15px; cursor: pointer;" data-toggle="modal" data-target="#paymentModal">Edit Payment</span> --></h2>
 	<br>
-	<button class="btn btn-primary" data-toggle="modal" data-target="#addNewModal">Add New</button>
+	<!-- <button class="btn btn-primary" data-toggle="modal" data-target="#addNewModal">Add New</button> -->
 	<br>
 	<br>
 	<table>
 		<tr>
 			<th>	</th>
-			<th>First Name</th>
-			<th>Last Name</th>
+			<!-- <th>First Name</th> -->
+			<!-- <th>Last Name</th> -->
 			<th>Email</th>
-			<th>Token</th>
-			<th>Joined Date</th>
-			<th>Refreshed Date</th>
+			<th>Product Name</th>
+			<th>Token Code</th>
+			<!-- <th>Refreshed Date</th> -->
 			<th>Expiration Date</th>
-			<th>Actions</th>
+			<!-- <th>Actions</th> -->
 		</tr>	
 	<?php
-	$i = 0;
+	$userNumber = 0;
 	foreach ($userDatas as $data) {
-		echo "<tr>";
-		$i++;
+		$userNumber++;
+		$count = count($data->arrTokens);
+		for( $i = 0; $i < $count; $i++){
+			echo "<tr>";
+			if( $i == 0){
 	?>
-		<td><?=$i?></td>
-		<td class="fName"><?=$data->firstName?></td>
-		<td class="lName"><?=$data->lastName?></td>
-		<td class="eMail"><?=$data->eMail?></td>
-		<td>
-			<div class="token HideItem" style="float: left;"><?=$data->token?></div>
-			<span style="float: right;">
-				<div class="button-group">
-					<button class="btn btn-primary showBtn" onclick="btnShowClicked(this)" style="line-height: 2px">Show</button>
-				</div>
-			</span>
-		</td>
-		<td><?=$data->startedDate?></td>
-		<td class="refreshedDate"><?=$data->refreshedDate?></td>
-		<td><input type="date" name="expDate" value="<?=$data->expDate?>"></td>
-		<td style="text-align: center;">
-			<div class="button-group">
-				<button class="btn btn-success saveBtn" onclick="btnSaveClicked(this)" style="line-height: 2px">Save</button>
-				<button class="btn btn-success refreshBtn" onclick="btnRefreshClicked(this)" style="line-height: 2px">Renew</button>
-				<button class="btn btn-success removeBtn" onclick="btnRemoveClicked(this)" style="line-height: 2px">Remove</button>
-			</div>
-		</td>
+		<td rowspan="<?=$count?>"><?=$userNumber?></td>
+		<td class="eMail" rowspan="<?=$count?>"><?=$data->eMail?></td>
+	<?php			
+			}
+			$value = $data->arrTokens[$i];
+	?>
+		<td><?=$value->product_name?></td>
+		<td><?=$value->token?></td>
+		<td><?=$value->expDate?></td>
+	<?php
+		}
+	?>
 	<?php
 		echo "</tr>";
 	}
@@ -87,7 +80,7 @@ require_once __DIR__ . "/JRA/makeKey.php";
 	?>
 	</table>
 	<br>
-	<button class="btn btn-primary" data-toggle="modal" data-target="#addNewModal">Add New</button>
+	<!-- <button class="btn btn-primary" data-toggle="modal" data-target="#addNewModal">Add New</button> -->
 </div>
 
 <!-- Pass Change Modal -->
