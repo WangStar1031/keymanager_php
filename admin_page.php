@@ -35,7 +35,10 @@ require_once __DIR__ . "/JRA/makeKey.php";
 	<div style="float: right;">
 		<a href="admin_logout.php">Logout</a>
 	</div>
-	<h2>Joined Users<span class="btn btn-danger" style="margin-left: 20%; font-size: 15px; cursor: pointer;" data-toggle="modal" data-target="#authModal">Change Authentication</span><!-- <span class="btn btn-danger" style="margin-left: 20px; font-size: 15px; cursor: pointer;" data-toggle="modal" data-target="#paymentModal">Edit Payment</span> --></h2>
+	<h2>Joined Users
+		<span class="btn btn-danger" style="margin-left: 20%; font-size: 15px; cursor: pointer;" data-toggle="modal" data-target="#authModal">Change Authentication</span>
+		<span class="btn btn-danger" style="margin-left: 20px; font-size: 15px; cursor: pointer;" data-toggle="modal" data-target="#settingModal">Product Settings</span>
+		<!-- <span class="btn btn-danger" style="margin-left: 20px; font-size: 15px; cursor: pointer;" data-toggle="modal" data-target="#paymentModal">Edit Payment</span> --></h2>
 	<br>
 	<!-- <button class="btn btn-primary" data-toggle="modal" data-target="#addNewModal">Add New</button> -->
 	<br>
@@ -67,9 +70,10 @@ require_once __DIR__ . "/JRA/makeKey.php";
 			}
 			$value = $data->arrTokens[$i];
 	?>
-		<td><?=$value->product_name?></td>
+		<td class="product_name"><?=$value->product_name?></td>
 		<td><?=$value->token?></td>
-		<td><?=$value->expDate?></td>
+		<td><input type="date" name="date" value="<?=$value->expDate?>"></td>
+		<td><button class="btn btn-success" onclick="onSave(this)">Save</button><button class="btn btn-danger" onclick="onRemove(this)">Remove</button></td>
 	<?php
 		}
 	?>
@@ -116,8 +120,33 @@ require_once __DIR__ . "/JRA/makeKey.php";
 
 	</div>
 </div>
+<!-- Pass Change Modal -->
+<div id="settingModal" class="modal fade" role="dialog">
+	<div class="modal-dialog">
+	<div class="modal-content">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal">&times;</button>
+			<h4 class="modal-title">Product Settings</h4>
+		</div>
+		<div class="modal-body">
+			<table>
+				<tr>
+					<th>Product Name</th>
+					<th>Expiration Period</th>
+					<th>Action</th>
+				</tr>
+			</table>
+			<br>
+			<button class="btn btn-primary" onclick="addNewProduct()">Add New</button>
+		</div>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-success" onclick="saveSettings()">Save</button>
+			<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+		</div>
+	</div>
 
-<!-- Payment Modal Modal -->
+	</div>
+</div><!-- Payment Modal Modal -->
 <div id="paymentModal" class="modal fade" role="dialog">
 	<div class="modal-dialog">
 	<div class="modal-content">
@@ -142,21 +171,6 @@ require_once __DIR__ . "/JRA/makeKey.php";
 					<td><input type="text" name="payStripeSecret"></td>
 				</tr>
 			</table>
-			<!-- <h4>Paypal</h4>
-			<table>
-				<tr>
-					<td>API USERNAME</td>
-					<td><input type="text" name="payStripeKey"></td>
-				</tr>
-				<tr>
-					<td>API PASSWORD</td>
-					<td><input type="text" name="payStripeSecret"></td>
-				</tr>
-				<tr>
-					<td>API SIGNATURE</td>
-					<td><input type="text" name="payStripeSecret"></td>
-				</tr>
-			</table> -->
 		</div>
 		<div class="modal-footer">
 			<button type="button" class="btn btn-success" onclick="savePaymentSettings()">Save</button>
@@ -201,7 +215,90 @@ require_once __DIR__ . "/JRA/makeKey.php";
 </div>
 
 <script type="text/javascript">
-
+	function onSave(_this){
+		var curRow = $(_this).parent().parent();
+		var eMail = curRow.find(".eMail").eq(0).text();
+		var product_name = curRow.find(".product_name").eq(0).text();
+		var expDate = curRow.find("input[name=date]").eq(0).val();
+		$.post("./JRA/api_accountManager.php", {action:"save", eMail: eMail, product_name: product_name, expDate: expDate}, function(data){
+			document.location.reload();
+		})
+	}
+	function onRemove(_this){
+		var curRow = $(_this).parent().parent();
+		var eMail = curRow.find(".eMail").eq(0).text();
+		var product_name = curRow.find(".product_name").eq(0).text();
+		$.post("./JRA/api_accountManager.php", {action:"removeToken", eMail: eMail, product_name: product_name}, function(data){
+			document.location.reload();
+		})
+	}
+	function loadingProducts(){
+		$.post("./JRA/api_accountManager.php", {action:"getProducts"}, function(data){
+			if( !data) return;
+			var products = JSON.parse(data);
+			console.log(products);
+			strHtml = "";
+			// debugger;
+			for( var i = 0; i < products.length; i++){
+				var product = products[i];
+				strHtml += '<tr>';
+					strHtml += '<td><input type="text" name="product_name" value="' + product.product_name + '"></td>';
+					strHtml += '<td>';
+						strHtml += '<span>';
+							strHtml += '<select>';
+								for( var j = 1; j <= 12; j++){
+									strHtml += '<option';
+									if( j == product.expPeriod){
+										strHtml += ' selected';
+									}
+									strHtml += '>' + j + '</option>';
+								}
+							strHtml += '</select>';
+						strHtml += '</span>months';
+					strHtml += '</td>';
+					strHtml += '<td><button class="btn btn-success" onclick="deleteProduct(this)">Delete</button></td>';
+				strHtml += '</tr>';
+			}
+			$("#settingModal table").append(strHtml);
+		});
+	}
+	loadingProducts();
+	function deleteProduct(_this){
+		$(_this).parent().parent().remove();
+	}
+	function addNewProduct(){
+		var strHtml = "";
+		strHtml += '<tr>';
+			strHtml += '<td><input type="text" name="product_name"></td>';
+			strHtml += '<td>';
+				strHtml += '<span>';
+					strHtml += '<select>';
+						for( var i = 1; i <= 12; i++){
+							strHtml += '<option>' + i + '</option>';
+						}
+					strHtml += '</select>';
+				strHtml += '</span>months';
+			strHtml += '</td>';
+			strHtml += '<td><button class="btn btn-success" onclick="deleteProduct(this)">Delete</button></td>';
+		strHtml += '</tr>';
+		$("#settingModal table").append(strHtml);
+	}
+	function saveSettings(){
+		var products = $("#settingModal table tr");
+		var arrProducts = [];
+		for( var i = 1; i < products.length; i++){
+			var curTr = products.eq(i);
+			var product_name = curTr.find("td input").eq(0).val();
+			if( !product_name)continue;
+			var expPeriod = curTr.find("td select").eq(0).find(":selected").text();
+			arrProducts.push({product_name: product_name, expPeriod: expPeriod});
+		}
+		// debugger;
+		$.post("./JRA/api_accountManager.php", {action:"setProducts", data: arrProducts}, function(data){
+			console.log(data);
+			document.location.reload();
+		});
+	}
 </script>
 <script src="JRA/assets/admin_page.js?<?=time()?>"></script>
 

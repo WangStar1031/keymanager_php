@@ -5,6 +5,35 @@ if( isset($_POST['action'])) $_action = $_POST['action'];
 require_once __DIR__ . "/userManager.php";
 
 switch ($_action) {
+	case 'save':
+		$eMail = "";
+		if( isset($_POST['eMail'])) $eMail = $_POST['eMail'];
+		$product_name = "";
+		if( isset($_POST['product_name'])) $product_name = $_POST['product_name'];
+		$expDate = "";
+		if( isset($_POST['expDate'])) $expDate = $_POST['expDate'];
+		if( $eMail != ""){
+			updateExpDate($eMail, $product_name, $expDate);
+		}
+		break;
+	case 'removeToken':
+		$eMail = "";
+		if( isset($_POST['eMail'])) $eMail = $_POST['eMail'];
+		$product_name = "";
+		if( isset($_POST['product_name'])) $product_name = $_POST['product_name'];
+		if( $eMail != ""){
+			removeToken($eMail, $product_name);
+		}
+		break;
+	case 'getProducts':
+		getAllProducts();
+		break;
+	case 'setProducts':
+		$data = "";
+		if( isset($_POST['data'])) $data = $_POST['data'];
+		$products = json_encode($data);
+		setAllProducts($products);
+		break;
 	case 'login':
 		$_token = "";
 		if( isset($_POST['token'])) $_token = $_POST['token'];
@@ -13,7 +42,11 @@ switch ($_action) {
 		$_email = "";
 		if( isset($_POST['eMail'])) $_email = $_POST['eMail'];
 		if( $_token != ""){
-			canLogin($_email, $_productName, $_token);
+			if(canLogin($_email, $_productName, $_token) == true){
+				echo "login";
+			} else{
+				echo "not login";
+			}
 		}
 		break;
 	case 'logout':
@@ -21,7 +54,8 @@ switch ($_action) {
 		if( isset($_POST['productName'])) $_productName = $_POST['productName'];
 		$_email = "";
 		if( isset($_POST['eMail'])) $_email = $_POST['eMail'];
-		Logout($_email, $_productName);
+		if( Logout($_email, $_productName))
+			echo "loged out";
 		break;
 	case 'canUseProduct':
 		$_productName = "";

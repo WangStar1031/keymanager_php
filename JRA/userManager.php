@@ -1,6 +1,46 @@
 <?php
 
 	require_once __DIR__ . "/makeKey.php";
+	function getAllProducts(){
+		$fName = __DIR__ . "/logs/products.json";
+		if( file_exists($fName)){
+			$contents = file_get_contents( $fName);
+			echo $contents;
+		} else{
+			file_put_contents($fName, "");
+		}
+	}
+	function updateExpDate($eMail, $product_name, $expDate){
+		$fName = __DIR__ . "/logs/users/" . $eMail;
+		if( file_exists($fName)){
+			$userInfo = json_decode(file_get_contents($fName));
+			foreach ($userInfo->arrTokens as $value) {
+				if( strcasecmp($value->product_name, $product_name) == 0){
+					$value->expDate = $expDate;
+					file_put_contents($fName, json_encode($userInfo));
+					return;
+				}
+			}
+		}
+	}
+	function removeToken($eMail, $product_name){
+		$fName = __DIR__ . "/logs/users/" . $eMail;
+		if( file_exists($fName)){
+			$userInfo = json_decode(file_get_contents($fName));
+			$arrTokens = [];
+			foreach ($userInfo->arrTokens as $value) {
+				if( strcasecmp($value->product_name, $product_name) != 0){
+					$arrTokens[] = $value;
+				}
+			}
+			$userInfo->arrTokens = $arrTokens;
+			file_put_contents($fName, json_encode($userInfo));
+		}
+	}
+	function setAllProducts($data){
+		$fName = __DIR__ . "/logs/products.json";
+		file_put_contents($fName, $data);
+	}
 	function reNewToken($_email){
 		$_token = makeEncryptKey($_email);
 		$fName = __DIR__ . "/logs/users/" . $_email;
@@ -166,7 +206,7 @@
 				if( $value->product_name == $_productName){
 					$value->isLoged = "0";
 					file_put_contents($fName, json_encode($userInfo));
-					return;
+					return true;
 				}
 			}
 		}
@@ -178,13 +218,13 @@
 			$arrTokens = $userInfo->arrTokens;
 			foreach ($arrTokens as $value) {
 				if( $value->product_name == $_productName){
-					if( strcasecmp($value->token, $_token)) return;
-					if( strtotime($value->expDate) < strtotime(date("Y-m-d")))return;
+					if( strcasecmp($value->token, $_token)) return false;
+					if( strtotime($value->expDate) < strtotime(date("Y-m-d")))return false;
 					if( $value->isLoged == "0"){
 						$value->isLoged = "1";
 						file_put_contents($fName, json_encode($userInfo));
-						echo "1";
-						return;
+						// echo "login";
+						return true;
 					}
 				}
 			}
